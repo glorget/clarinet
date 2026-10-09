@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doigtés clarinette</title>
+<meta name="theme-color" content="#2f6f8f">
+<meta name="description" content="Entraînement aux doigtés de la clarinette en si♭ avec détection de hauteur par le micro / B♭ clarinet fingering trainer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Clarinette">
+<style>
+  :root {
+    --bg: #f4f1ec; --card: #ffffff; --text: #23211f; --muted: #6f6a63;
+    --line: #ddd7cd; --accent: #2f6f8f; --ok: #2e8b57; --bad: #c0392b; --warn: #d9822b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1b1a; --card: #272523; --text: #ece8e1; --muted: #a49e95;
+            --line: #3a3733; --accent: #5aa7c9; --ok: #4fbf84; --bad: #e66a5b; --warn: #e8a25a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 20px 16px 48px; }
+  h1 { font-size: 1.5rem; margin: 0 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+          padding: 16px 18px; margin-bottom: 16px; }
+  .card h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: .06em;
+             color: var(--muted); margin: 0 0 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
+  label { white-space: nowrap; }
+  label.inline { flex-direction: row; align-items: center; gap: 8px; color: var(--text); font-size: .95rem; }
+  select, input[type=number] { font: inherit; padding: 6px 8px; border-radius: 8px;
+         border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  input[type=number] { width: 84px; }
+  button { font: inherit; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--accent);
+           background: var(--accent); color: #fff; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  .meter { height: 8px; width: 160px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .meter > div { height: 100%; width: 0; background: var(--ok); transition: width .05s; }
+
+  .heard { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; }
+  .big { font-size: 3rem; font-weight: 700; line-height: 1.1; min-height: 1.1em; }
+  .big.letters { font-size: 1.8rem; font-weight: 600; color: var(--muted); }
+  .small { color: var(--muted); font-size: .9rem; min-height: 1.3em; }
+  .gauge { position: relative; height: 38px; margin-top: 6px; }
+  .gauge .track { position: absolute; left: 0; right: 0; top: 16px; height: 6px;
+                  background: var(--line); border-radius: 3px; }
+  .gauge .zone { position: absolute; top: 12px; height: 14px; background: var(--ok);
+                 opacity: .25; border-radius: 3px; display: none; }
+  .gauge .center { position: absolute; left: 50%; top: 8px; width: 2px; height: 22px; background: var(--muted); }
+  .gauge .needle { position: absolute; top: 4px; width: 4px; height: 30px; margin-left: -2px;
+                   background: var(--accent); border-radius: 2px; left: 50%; opacity: .2;
+                   transition: left .08s; }
+  .gauge .ends { position: absolute; top: 28px; left: 0; right: 0; display: flex;
+                 justify-content: space-between; font-size: .7rem; color: var(--muted); }
+
+  .target { display: grid; grid-template-columns: 230px 1fr; gap: 20px; align-items: center; }
+  .target svg { width: 230px; height: auto; background: transparent; }
+  .verdict { font-size: 1.4rem; font-weight: 600; min-height: 2.6em; margin-top: 8px; }
+  .verdict.ok { color: var(--ok); } .verdict.bad { color: var(--bad); } .verdict.wait { color: var(--muted); font-weight: 400; font-size: 1rem; }
+  .score { color: var(--muted); }
+  #msg { color: var(--bad); margin-top: 8px; }
+  @media (max-width: 640px) {
+    .heard, .target { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div><h1 data-i18n="h1"></h1>
+    <p class="sub" data-i18n="sub"></p></div>
+    <button id="langBtn" class="secondary" aria-label="Language">EN</button>
+  </div>
+
+  <section class="card">
+    <h2 data-i18n="hSettings"></h2>
+    <div class="row">
+      <button id="micBtn"></button>
+      <label><span data-i18n="mic"></span>
+        <select id="deviceSel"><option value=""></option></select>
+      </label>
+      <label><span data-i18n="refA"></span>
+        <input type="number" id="refA" value="440" min="400" max="480" step="1">
+      </label>
+      <label><span data-i18n="gate"></span>
+        <input type="range" id="gate" min="-65" max="-25" value="-48">
+      </label>
+      <label><span data-i18n="level"></span>
+        <div class="meter"><div id="level"></div></div>
+      </label>
+    </div>
+    <div id="msg"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="hHeard"></h2>
+    <div class="heard">
+      <div>
+        <div class="big" id="heardMain">–</div>
+        <div class="big letters" id="heardSub">&nbsp;</div>
+        <div class="small" id="heardInfo">&nbsp;</div>
+      </div>
+      <div>
+        <div class="gauge" id="gauge">
+          <div class="track"></div>
+          <div class="zone" id="zone"></div>
+          <div class="center"></div>
+          <div class="needle" id="needle"></div>
+          <div class="ends"><span data-i18n="tooLow"></span><span id="centsTxt">&nbsp;</span><span data-i18n="tooHigh"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="hTrain"></h2>
+    <div class="row" style="margin-bottom:14px">
+      <label><span data-i18n="range"></span>
+        <select id="rangeSel">
+          <option value="52-84" selected data-i18n="r1"></option>
+          <option value="52-68" data-i18n="r2"></option>
+          <option value="67-70" data-i18n="r3"></option>
+          <option value="71-84" data-i18n="r4"></option>
+          <option value="85-96" data-i18n="r5"></option>
+          <option value="52-96" data-i18n="r6"></option>
+        </select>
+      </label>
+      <label><span data-i18n="tol"></span> ± <span id="tolTxt">35</span> <span data-i18n="cents"></span>
+        <input type="range" id="tol" min="10" max="50" step="5" value="35">
+      </label>
+      <label class="inline"><input type="checkbox" id="accid" checked> <span data-i18n="accid"></span></label>
+      <label class="inline"><input type="checkbox" id="auto" checked> <span data-i18n="auto"></span></label>
+    </div>
+    <div class="row" style="margin-bottom:14px">
+      <button id="trainBtn"></button>
+      <button id="skipBtn" class="secondary" disabled data-i18n="skip"></button>
+      <button id="toneBtn" class="secondary" disabled data-i18n="tone"></button>
+      <span class="score" id="score"></span>
+    </div>
+    <div class="target">
+      <svg id="staff" viewBox="0 0 230 220" aria-label="Portée"></svg>
+      <div>
+        <div class="big" id="targetMain">–</div>
+        <div class="big letters" id="targetSub">&nbsp;</div>
+        <div class="verdict wait" id="verdict"></div>
+      </div>
+    </div>
+  </section>
+  <p class="small" data-i18n="footer"></p>
+</main>
+<script src="pitch.js"></script>
+<script src="app.js"></script>
+<script>
+  // PWA : mise en cache pour un usage hors ligne (HTTPS ou localhost uniquement)
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>
