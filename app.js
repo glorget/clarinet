@@ -31,7 +31,7 @@ const I18N = {
   fr: {
     title: 'Doigtés clarinette', h1: 'Doigtés clarinette',
     sub: 'Clarinette en si♭ — les notes affichées sont les notes <strong>écrites</strong> (celles de la partition).',
-    hSettings: 'Micro et réglages', micOn: 'Activer le micro', micOff: 'Couper le micro',
+    hSettings: 'Réglages', hTarget: 'Note à jouer', micOn: 'Activer le micro', micOff: 'Couper le micro',
     mic: 'Micro', defaultMic: 'Micro par défaut', micN: 'Micro ', refA: 'La de référence (Hz)',
     gate: 'Sensibilité', level: 'Niveau', hHeard: 'Note entendue',
     tooLow: 'trop bas', tooHigh: 'trop haut', cents: 'cents',
@@ -54,8 +54,8 @@ const I18N = {
   en: {
     title: 'Clarinet Fingering Trainer', h1: 'Clarinet Fingering Trainer',
     sub: 'B♭ clarinet — displayed notes are the <strong>written</strong> notes (as on the sheet music).',
-    hSettings: 'Microphone & settings', micOn: 'Turn microphone on', micOff: 'Turn microphone off',
-    mic: 'Microphone', defaultMic: 'Default microphone', micN: 'Microphone ', refA: 'Reference A (Hz)',
+    hSettings: 'Settings', hTarget: 'Note to play', micOn: 'Turn mic on', micOff: 'Turn mic off',
+    mic: 'Mic', defaultMic: 'Default mic', micN: 'Mic ', refA: 'Reference A (Hz)',
     gate: 'Sensitivity', level: 'Level', hHeard: 'Note heard',
     tooLow: 'too flat', tooHigh: 'too sharp', cents: 'cents',
     hTrain: 'Practice', range: 'Range',
