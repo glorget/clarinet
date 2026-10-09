@@ -6,7 +6,7 @@ Web app (FR/EN) to practise B♭ clarinet fingerings: it listens to the micropho
 
 ## Utiliser en ligne (recommandé) / Use online (recommended)
 
-Adresse / URL : `https://VOTRE-IDENTIFIANT.github.io/clarinet/` *(à remplacer / replace)*
+Adresse / URL : `https://glorget.github.io/clarinet/`
 
 Le micro exige une page en HTTPS (ou `localhost`). / The microphone requires HTTPS (or `localhost`).
 
