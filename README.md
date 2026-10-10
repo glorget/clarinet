@@ -14,13 +14,6 @@ Le micro exige une page en HTTPS (ou `localhost`). / The microphone requires HTT
 - Chrome / Edge (Windows, ChromeOS, Android) : icône « Installer » dans la barre d'adresse, ou menu ⋮ > *Installer l'application*.
 - Safari (iPad/iPhone) : Partager > *Sur l'écran d'accueil*.
 
-## Publier sur GitHub Pages
-
-1. Créer un dépôt **public** (ex. `clarinet`) et y déposer tous les fichiers de ce dossier (y compris `.nojekyll`).
-2. *Settings > Pages* > *Deploy from a branch* > branche `main`, dossier `/ (root)` > *Save*.
-3. L'adresse s'affiche après 1 à 2 minutes.
-4. Après une modification des fichiers, changer `VERSION` dans `service-worker.js` (`v1` → `v2`…) pour que les appareils renouvellent leur cache.
-
 ## Lancer en local (secours) / Run locally (fallback)
 
 Nécessite Python 3. / Requires Python 3. Ouvrir ensuite `http://localhost:8765/`.
