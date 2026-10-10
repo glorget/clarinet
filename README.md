@@ -32,3 +32,12 @@ Ne pas ouvrir `index.html` par double-clic (`file://`) : le micro y est souvent 
 Les notes affichées sont les notes écrites (transposées d'un ton par rapport au son réel). Détection de hauteur : algorithme YIN (`pitch.js`).
 
 Windows : si le micro n'est pas détecté, vérifier *Paramètres > Confidentialité et sécurité > Microphone*. Les casques Bluetooth appliquent parfois un traitement qui dégrade la détection : préférer un micro intégré ou USB.
+
+## Licence : Creative Commons Attribution — Non Commercial 4.0 International
+https://creativecommons.org/licenses/by-nc/4.0/
+
+Cette licence permet de :
+  - Utiliser, copier, redistribuer
+  - Modifier et adapter
+  - À condition de créditer l'auteur (BY)
+  - Interdit toute utilisation commerciale (NC)
