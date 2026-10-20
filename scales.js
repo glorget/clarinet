@@ -44,6 +44,9 @@ function buildScale(rootLetter, type, lowest) {
 //   o.wrongHold durée (ms) d'une mauvaise note stable avant de la signaler
 //   o.metro    null, ou { P (ms par temps), t0 (instant du 1er temps de la gamme), lat (latence de détection, ms),
 //              outLat (latence de sortie, ms), tolPct (0…20), floor (ms, résolution de mesure) }
+// Régularité : le décalage moyen du joueur par rapport au clic (médiane des écarts) est mesuré, puis chaque note est
+// jugée par rapport à cette pulsation personnelle. Un décalage constant n'est donc pas une faute de régularité ;
+// au-delà de 45 % d'un temps, il l'est (on ne sait plus sur quel temps le joueur se place).
 // À appeler à chaque image : update(h, heardAt, now), où h = { wf: note écrite en midi flottant } ou null,
 // heardAt = instant de la dernière détection valide.
 class ScaleRun {
@@ -51,7 +54,7 @@ class ScaleRun {
     this.scale = scale; this.notes = scale.notes; this.o = o;
     this.idx = 0; this.done = false; this.rev = 0;
     this.cand = null; this.wrong = null; this.live = null;
-    this.res = this.notes.map(() => ({ err: null, matched: false, dev: null, timing: null, onset: null, last: null, short: false }));
+    this.res = this.notes.map(() => ({ err: null, matched: false, dev: null, rel: null, timing: null, onset: null, last: null, short: false }));
   }
 
   expected(k) { const m = this.o.metro; return m.t0 + k * m.P + (m.outLat || 0); }
@@ -62,9 +65,10 @@ class ScaleRun {
     const m = this.o.metro, n = this.notes.length, tol = this.o.tol;
     if (m && now < m.t0 - m.P / 2) return;                  // décompte : on n'écoute pas encore
 
-    // Notes dont la fenêtre de temps est dépassée : manquées
+    // Notes dont la fenêtre de temps est dépassée : manquées (fenêtre décalée selon le retard habituel du joueur)
     if (m) {
-      while (this.idx < n && now > this.expected(this.idx) + m.P / 2 + this.o.hold) this._miss(this.idx++);
+      const sh = this._shift();
+      while (this.idx < n && now > this.expected(this.idx) + sh + 0.9 * m.P + this.o.hold) this._miss(this.idx++);
     }
 
     if (this.idx < n) {
@@ -103,7 +107,19 @@ class ScaleRun {
         this.wrong = null;
       }
     }
-    if (this.idx >= n || (m && now > this.expected(n - 1) + m.P)) this._finish();
+    if (this.idx >= n || (m && now > this.expected(n - 1) + this._shift() + 1.2 * m.P)) this._finish();
+  }
+
+  _devs() { return this.res.filter(r => r.dev !== null).map(r => r.dev); }
+  _median(a) {
+    if (!a.length) return 0;
+    const b = a.slice().sort((x, y) => x - y), h = b.length >> 1;
+    return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2;
+  }
+  _shift() {                                   // retard habituel du joueur, estimé en cours d'exercice
+    const d = this._devs(); if (d.length < 2) return 0;
+    const P = this.o.metro.P;
+    return Math.max(-0.45 * P, Math.min(0.45 * P, this._median(d)));
   }
 
   _miss(k) {
@@ -116,10 +132,7 @@ class ScaleRun {
     for (let k = this.idx; k < j; k++) this._miss(k);
     const r = this.res[j], m = this.o.metro;
     r.matched = true; r.onset = since; r.last = heardAt;
-    if (m) {
-      r.dev = (since - m.lat) - this.expected(j);
-      r.timing = Math.abs(r.dev) <= m.tolPct / 100 * m.P + m.floor;
-    }
+    if (m) r.dev = (since - m.lat) - this.expected(j);
     this.idx = j + 1; this.cand = null; this.wrong = null; this.live = null; this.rev++;
   }
 
@@ -127,6 +140,15 @@ class ScaleRun {
     for (let k = this.idx; k < this.notes.length; k++) this._miss(k);
     this.idx = this.notes.length;
     const m = this.o.metro, t = this.res[this.scale.topIdx];
+    if (m) {
+      const d = this._devs();
+      this.offset = d.length >= 3 ? this._median(d) : 0;
+      this.offsetBig = Math.abs(this.offset) > 0.45 * m.P;
+      const ref = this.offsetBig ? 0 : this.offset;                 // pulsation personnelle du joueur
+      const tolT = m.tolPct / 100 * m.P + m.floor;
+      this.res.forEach(r => { if (r.dev !== null) { r.rel = r.dev - ref; r.timing = Math.abs(r.rel) <= tolT; } });
+      this.spread = d.length ? d.reduce((a, v) => a + Math.abs(v - ref), 0) / d.length : 0;
+    }
     // Respiration au sommet : la note la plus haute peut être écourtée de 50 % au plus
     if (m && t.matched && t.last !== null && (t.last - t.onset) < 0.5 * m.P - m.floor) {
       t.short = true; t.timing = false;
@@ -137,9 +159,10 @@ class ScaleRun {
   summary() {
     const pitch = this.res.filter(r => r.err).length;
     const timing = this.res.filter(r => !r.err && r.timing === false).length;
-    const devs = this.res.filter(r => r.dev !== null).map(r => r.dev);
-    const mean = devs.length ? devs.reduce((a, b) => a + b, 0) / devs.length : null;
-    return { pitch, timing, mean, short: this.res[this.scale.topIdx].short, ok: pitch === 0 && timing === 0 };
+    const has = this.o.metro && this.offset !== undefined;
+    return { pitch, timing, offset: has ? this.offset : null, spread: has ? this.spread : null,
+             offsetBig: !!(has && this.offsetBig), short: this.res[this.scale.topIdx].short,
+             ok: pitch === 0 && timing === 0 };
   }
 }
 

@@ -159,6 +159,10 @@
           text-align: center; font-size: .9rem; font-weight: 600; line-height: 1.15; }
   .chip small { display: block; font-size: .65rem; font-weight: 400; color: var(--muted); min-height: .9em; }
   .chip.top { border-bottom-width: 4px; }
+  .chip.bt { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .chip.bt small { color: #fff; }
+  .cue { font-size: 2.6rem; font-weight: 700; line-height: 1.1; min-height: 1.2em; margin: 2px 0 6px; color: var(--muted); }
+  .cue.go { color: var(--ok); }
   .chip.cur { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
   .chip.ok { border-color: var(--ok); color: var(--ok); }
   .chip.late { border-color: var(--warn); color: var(--warn); }
@@ -225,6 +229,7 @@
 
   <section class="card scale-only" id="scaleCard">
     <h2 id="scaleTitle">&nbsp;</h2>
+    <div class="cue" id="cue" aria-live="polite">&nbsp;</div>
     <div class="chips" id="chips"></div>
     <div class="beatrow"><span class="beat" id="beat"></span><span class="hint" id="beatTxt"></span></div>
   </section>
@@ -309,9 +314,6 @@
       </label>
       <label class="scale-only"><span><span data-i18n="sTolT"></span> ± <b id="tolTTxt">10</b> %</span>
         <input type="range" id="tolT" min="0" max="20" step="1" value="10">
-      </label>
-      <label class="scale-only full"><span data-i18n="sLat"></span>
-        <input type="number" id="lat" value="70" min="0" max="250" step="5">
       </label>
     </div>
   </details>

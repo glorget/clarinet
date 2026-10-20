@@ -1,6 +1,6 @@
 // Service worker : réseau d'abord (pour recevoir les mises à jour), cache en secours (hors ligne).
 // Incrémenter VERSION à chaque modification des fichiers pour renouveler le cache.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'clarinette-' + VERSION;
 const FILES = [
   './', 'index.html', 'app.js', 'pitch.js', 'scales.js', 'manifest.webmanifest',
