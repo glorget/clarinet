@@ -1,9 +1,9 @@
 // Service worker : réseau d'abord (pour recevoir les mises à jour), cache en secours (hors ligne).
 // Incrémenter VERSION à chaque modification des fichiers pour renouveler le cache.
-const VERSION = 'v6';
+const VERSION = 'v10';
 const CACHE = 'clarinette-' + VERSION;
 const FILES = [
-  './', 'index.html', 'app.js', 'pitch.js', 'manifest.webmanifest',
+  './', 'index.html', 'app.js', 'pitch.js', 'scales.js', 'manifest.webmanifest',
   'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png',
 ];
 

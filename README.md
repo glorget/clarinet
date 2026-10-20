@@ -27,6 +27,18 @@ Nécessite Python 3. / Requires Python 3. Ouvrir ensuite `http://localhost:8765/
 
 Ne pas ouvrir `index.html` par double-clic (`file://`) : le micro y est souvent bloqué.
 
+## Mode Gammes / Scales mode
+
+**FR.** Onglet « Gammes » : l'application tire au hasard une tonique naturelle (do, ré, mi, fa, sol, la, si), à l'octave la plus basse jouable (chalumeau), et vous demande de jouer la gamme **majeure** ou **mineure** (harmonique, naturelle ou mélodique) en montant puis en descendant, en legato. Chaque note doit être juste (marge d'accord réglable). Une courte respiration au sommet est acceptée.
+
+Avec le **métronome** (30 à 180 battements/min, 4 temps de décompte) : une note par temps, et l'application vérifie que chaque note commence sur le temps, avec une tolérance de 0 à 20 % de la durée d'un temps. La note la plus haute peut être écourtée de 50 % au plus (respiration). **Utilisez un casque**, sinon le micro capte le clic. Le décalage moyen entre vos notes et le clic (réaction, latence du casque ou du micro) est **mesuré et affiché**, et chaque note est jugée par rapport à votre propre pulsation : un décalage constant n'est pas une faute de régularité, une dérive ou des irrégularités le sont. Au-delà de 45 % d'un temps, le décalage est considéré comme trop important. La tolérance inclut 25 ms de résolution de mesure.
+
+**EN.** “Scales” tab: the app picks a random natural root note (C, D, E, F, G, A, B) in the lowest playable octave (chalumeau) and asks you to play the **major** or **minor** scale (harmonic, natural or melodic) up and down, legato. Each note must be in tune (adjustable tolerance). A short breath at the top is accepted.
+
+With the **metronome** (30–180 beats/min, 4-beat count-in): one note per beat, and the app checks that each note starts on the beat within 0–20 % of a beat. The highest note may be cut short by at most 50 % (breath). **Use headphones**, otherwise the mic picks up the click. The average offset between your notes and the click (reaction time, headphone or microphone latency) is **measured and displayed**, and each note is judged against your own pulse: a constant offset is not a timing fault, drift or irregularity is. Beyond 45% of a beat the offset is considered too large. The tolerance includes 25 ms of measurement resolution.
+
+Logique des gammes / scale logic: `scales.js`.
+
 ## Notes
 
 Les notes affichées sont les notes écrites (transposées d'un ton par rapport au son réel). Détection de hauteur : algorithme YIN (`pitch.js`).

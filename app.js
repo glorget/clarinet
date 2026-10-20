@@ -48,6 +48,28 @@ const I18N = {
     bravo: (name, dir) => '✓ Bravo ! ' + name + (dir ? ' (un peu ' + (dir > 0 ? 'haut' : 'bas') + ')' : ''),
     rightNote: (dev) => 'Bonne note, mais trop ' + (dev > 0 ? 'haute' : 'basse') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
     wrongNote: (name, up) => '✗ Vous jouez ' + name + ' (' + (up ? 'trop haut' : 'trop bas') + ') — essayez encore',
+    modeNote: 'Notes', modeScale: 'Gammes',
+    sMinor: 'Gamme mineure', sMinorType: 'Type de gamme mineure',
+    tHarmonic: 'Harmonique', tNatural: 'Naturelle', tMelodic: 'Mélodique',
+    sMetro: 'Métronome', sBpm: 'Tempo (battements/min)', sTolT: 'Tolérance de régularité',
+    sHeadphones: '🎧 Utilisez un casque : sinon le micro capte le clic du métronome.',
+    sTrainOn: 'Démarrer la gamme', sSkip: 'Autre gamme', sRetry: 'Recommencer',
+    typeName: { major: 'majeure', harmonic: 'mineure harmonique', natural: 'mineure naturelle', melodic: 'mineure mélodique' },
+    scaleTitle: (root, type, other) => 'Gamme ' + type + ' de ' + root + ' (' + other + ')',
+    sIdle: 'Choisissez les options puis appuyez sur « Démarrer la gamme ».',
+    sPlayUp: (i, n) => 'Jouez la gamme en montant — note ' + i + '/' + n,
+    sPlayDown: (i, n) => 'Et en descendant — note ' + i + '/' + n,
+    sCount: k => 'Décompte… ' + k, sGo: 'Allez-y !',
+    sTuning: dev => 'Note juste mais trop ' + (dev > 0 ? 'haute' : 'basse') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
+    sWrong: (name, up) => 'Vous jouez ' + name + ' (' + (up ? 'trop haut' : 'trop bas') + ')',
+    sOk: '✓ Gamme réussie !',
+    sBad: (s) => '✗ À retravailler : ' + [s.pitch ? s.pitch + ' note' + (s.pitch > 1 ? 's' : '') + ' fausse' + (s.pitch > 1 ? 's' : '') + ' ou manquée' + (s.pitch > 1 ? 's' : '') : '', s.timing ? s.timing + ' note' + (s.timing > 1 ? 's' : '') + ' hors rythme' : ''].filter(Boolean).join(', '),
+    sShort: 'La note la plus haute a été écourtée de plus de 50 %.',
+    sMean: (off, spread, big) => 'Décalage moyen : ' + (Math.abs(off) < 15 ? 'pile sur le clic' : Math.abs(off).toFixed(0) + ' ms ' + (off > 0 ? 'après' : 'avant') + ' le clic') + ' ; régularité : ±' + spread.toFixed(0) + ' ms.' + (big ? ' Décalage trop important : jouez plus près du clic.' : ''),
+    sGoNow: '▶ Jouez !', sDiag: 'Copier le diagnostic', sDiagCopied: 'Diagnostic copié — collez-le dans la conversation.',
+    sScore: n => n.firstTry + ' / ' + n.done + ' gammes réussies',
+    sTipFree: 'Sans métronome : jouez legato ; une courte respiration au sommet est acceptée.',
+    sTipMetro: 'Une note par temps, en legato ; une respiration au sommet est acceptée (note la plus haute écourtée de 50 % au plus).',
     micDenied: e => "Impossible d'accéder au micro (" + e + "). Autorisez le micro pour cette page dans le navigateur et dans Réglages Système > Confidentialité > Micro.",
     noMedia: "Ce navigateur n'autorise pas l'accès au micro depuis cette adresse. Lancez l'application avec lancer.command (adresse localhost).",
   },
@@ -71,6 +93,28 @@ const I18N = {
     bravo: (name, dir) => '✓ Well done! ' + name + (dir ? ' (a bit ' + (dir > 0 ? 'sharp' : 'flat') + ')' : ''),
     rightNote: (dev) => 'Right note, but too ' + (dev > 0 ? 'sharp' : 'flat') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
     wrongNote: (name, up) => '✗ You are playing ' + name + ' (' + (up ? 'too high' : 'too low') + ') — try again',
+    modeNote: 'Notes', modeScale: 'Scales',
+    sMinor: 'Minor scale', sMinorType: 'Minor scale type',
+    tHarmonic: 'Harmonic', tNatural: 'Natural', tMelodic: 'Melodic',
+    sMetro: 'Metronome', sBpm: 'Tempo (beats/min)', sTolT: 'Timing tolerance',
+    sHeadphones: '🎧 Use headphones: otherwise the mic picks up the metronome click.',
+    sTrainOn: 'Start the scale', sSkip: 'Another scale', sRetry: 'Try again',
+    typeName: { major: 'major', harmonic: 'harmonic minor', natural: 'natural minor', melodic: 'melodic minor' },
+    scaleTitle: (root, type, other) => root + ' ' + type + ' scale (' + other + ')',
+    sIdle: 'Choose the options, then press “Start the scale”.',
+    sPlayUp: (i, n) => 'Play the scale going up — note ' + i + '/' + n,
+    sPlayDown: (i, n) => 'And coming down — note ' + i + '/' + n,
+    sCount: k => 'Count-in… ' + k, sGo: 'Go!',
+    sTuning: dev => 'Right note but too ' + (dev > 0 ? 'sharp' : 'flat') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
+    sWrong: (name, up) => 'You are playing ' + name + ' (' + (up ? 'too high' : 'too low') + ')',
+    sOk: '✓ Scale completed!',
+    sBad: (s) => '✗ Needs work: ' + [s.pitch ? s.pitch + ' wrong or missed note' + (s.pitch > 1 ? 's' : '') : '', s.timing ? s.timing + ' note' + (s.timing > 1 ? 's' : '') + ' off the beat' : ''].filter(Boolean).join(', '),
+    sShort: 'The highest note was cut short by more than 50%.',
+    sMean: (off, spread, big) => 'Average offset: ' + (Math.abs(off) < 15 ? 'right on the click' : Math.abs(off).toFixed(0) + ' ms ' + (off > 0 ? 'behind' : 'ahead of') + ' the click') + '; steadiness: ±' + spread.toFixed(0) + ' ms.' + (big ? ' Offset too large: play closer to the click.' : ''),
+    sGoNow: '▶ Play!', sDiag: 'Copy diagnostic', sDiagCopied: 'Diagnostic copied — paste it into the conversation.',
+    sScore: n => n.firstTry + ' / ' + n.done + ' scales completed',
+    sTipFree: 'No metronome: play legato; a short breath at the top is accepted.',
+    sTipMetro: 'One note per beat, legato; a breath at the top is accepted (the highest note may be cut short by 50% at most).',
     micDenied: e => 'Cannot access the microphone (' + e + '). Allow microphone access for this page in the browser and in System Settings > Privacy & Security > Microphone.',
     noMedia: 'This browser does not allow microphone access from this address. Start the app with lancer.command (localhost address).',
   },
@@ -84,7 +128,11 @@ const el = {
   msg: $('msg'), heardMain: $('heardMain'), heardSub: $('heardSub'), heardInfo: $('heardInfo'),
   needle: $('needle'), zone: $('zone'), centsTxt: $('centsTxt'),
   rangeSel: $('rangeSel'), tol: $('tol'), tolTxt: $('tolTxt'), accid: $('accid'), auto: $('auto'),
-  langBtn: $('langBtn'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
+  langBtn: $('langBtn'),
+  modeNote: $('modeNote'), modeScale: $('modeScale'), retryBtn: $('retryBtn'), scaleTitle: $('scaleTitle'),
+  chips: $('chips'), beat: $('beat'), beatTxt: $('beatTxt'), minorChk: $('minorChk'), minorType: $('minorType'),
+  metroOn: $('metroOn'), headphones: $('headphones'), bpm: $('bpm'), bpmTxt: $('bpmTxt'),
+  tolT: $('tolT'), tolTTxt: $('tolTTxt'), cue: $('cue'), diagBtn: $('diagBtn'), diagOut: $('diagOut'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
   staff: $('staff'), targetMain: $('targetMain'), targetSub: $('targetSub'), verdict: $('verdict'),
 };
 
@@ -134,7 +182,7 @@ function stopMic() {
   rafId = null;
   if (stream) stream.getTracks().forEach(t => t.stop());
   if (ctx) ctx.close();
-  stream = ctx = analyser = null;
+  stream = ctx = analyser = null; clickBuf = null;
   el.micBtn.textContent = t('micOn');
   el.level.style.width = '0';
   showHeard(null);
@@ -143,6 +191,7 @@ function stopMic() {
 // ---------- Analyse ----------
 const history = [];        // dernières fréquences détectées (ou null)
 const HIST = 5;
+const RECENT = 2700;       // nombre d'échantillons analysés (≈ 56 ms à 48 kHz)
 let heard = null;          // { wf: midi écrit (flottant), freq: Hz réels }
 let lastHeardAt = 0;
 let ignoreUntil = 0;
@@ -150,18 +199,21 @@ let ignoreUntil = 0;
 function loop() {
   rafId = requestAnimationFrame(loop);
   analyser.getFloatTimeDomainData(buf);
+  const recent = buf.subarray(buf.length - RECENT);   // échantillons les plus récents : latence minimale
   let s = 0;
-  for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
-  const rms = Math.sqrt(s / buf.length);
+  for (let i = 0; i < recent.length; i++) s += recent[i] * recent[i];
+  const rms = Math.sqrt(s / recent.length);
   const db = 20 * Math.log10(rms + 1e-9);
   el.level.style.width = Math.max(0, Math.min(100, (db + 70) / 50 * 100)) + '%';
 
   const now = performance.now();
-  let f = null;
+  let f = null, raw = null;
   if (now > ignoreUntil && db > Number(el.gate.value)) {
-    const r = detectPitch(buf, ctx.sampleRate, { minFreq: 135, maxFreq: 2100 });
+    const r = detectPitch(recent, ctx.sampleRate, { minFreq: 135, maxFreq: 2100 });
+    raw = r;
     if (r && r.clarity > 0.8) f = r.freq;
   }
+  if (diag && !diag.stopped) diag.frames.push([now, raw ? raw.freq : 0, raw ? raw.clarity : 0, db]);
   history.push(f);
   if (history.length > HIST) history.shift();
   const valid = history.filter(x => x !== null).sort((a, b) => a - b);
@@ -174,7 +226,7 @@ function loop() {
     heard = null;
   }
   showHeard(heard);
-  if (training) evaluate(heard, now);
+  if (training) { if (mode === 'scale') scaleFrame(now); else evaluate(heard, now); }
 }
 
 function showHeard(h) {
@@ -241,7 +293,7 @@ function setVerdict(cls, text) {
 }
 
 function updateScore() {
-  el.score.textContent = stats.done ? t('score')(stats) : '';
+  el.score.textContent = stats.done ? t(mode === 'scale' ? 'sScore' : 'score')(stats) : '';
 }
 
 function evaluate(h, now) {
@@ -286,14 +338,15 @@ async function startTraining() {
   if (!stream && !(await startMic())) return;
   training = true; stats = { done: 0, firstTry: 0 }; updateScore();
   el.trainBtn.textContent = t('trainOff');
-  el.skipBtn.disabled = el.toneBtn.disabled = false;
-  newTarget();
+  el.skipBtn.disabled = el.toneBtn.disabled = el.retryBtn.disabled = false;
+  if (mode === 'scale') newScale(); else newTarget();
 }
 
 function stopTraining() {
-  training = false; state = 'idle'; target = null;
-  el.trainBtn.textContent = t('trainOn');
-  el.skipBtn.disabled = el.toneBtn.disabled = true;
+  training = false; state = 'idle'; target = null; run = null; metro = null;
+  el.trainBtn.textContent = trainLabel(true);
+  el.skipBtn.disabled = el.toneBtn.disabled = el.retryBtn.disabled = true;
+  el.chips.innerHTML = ''; el.scaleTitle.innerHTML = '&nbsp;'; el.beatTxt.textContent = ''; setCue('', false); el.beat.classList.remove('on');
   el.zone.style.display = 'none';
   setVerdict('wait', t('ended'));
   el.targetMain.textContent = '–'; el.targetSub.innerHTML = '&nbsp;';
@@ -316,11 +369,228 @@ function playTone() {
   history.length = 0; heard = null;
 }
 
+// ---------- Mode Gammes ----------
+let diag = null;
+let mode = 'note', scale = null, run = null, metro = null, lastRoot = -1, clickBuf = null, runRev = -1, shownIdx = -1;
+const DETECT_LATENCY_MS = 70;   // délai moyen de la détection (fenêtre d'analyse + lissage), mesuré approximativement
+const FR_L = ['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'], EN_L = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const ACC = ['♭♭', '♭', '', '♯', '♯♯'];
+const spelled = (n, names) => names[n.letter] + ACC[n.acc + 2] + n.oct;
+const spelledMain = n => spelled(n, lang === 'en' ? EN_L : FR_L);
+const spelledSub = n => spelled(n, lang === 'en' ? FR_L : EN_L);
+
+const trainLabel = on => t(mode === 'scale' ? (on ? 'sTrainOn' : 'trainOff') : (on ? 'trainOn' : 'trainOff'));
+const outLatency = () => ((ctx && (ctx.outputLatency || ctx.baseLatency)) || 0) * 1000;
+
+function scaleType() { return el.minorChk.checked ? el.minorType.value : 'major'; }
+
+function newScale() {
+  let l; do { l = Math.floor(Math.random() * 7); } while (l === lastRoot);
+  lastRoot = l;
+  scale = buildScale(l, scaleType());
+  startRun();
+}
+
+function startRun() {
+  const now = performance.now();
+  const useMetro = el.metroOn.checked;
+  const P = 60000 / Number(el.bpm.value);
+  let m = null;
+  metro = null;
+  if (useMetro) {
+    const beat0 = now + 600;                                  // 4 temps de décompte, puis la gamme
+    m = { P, t0: beat0 + 4 * P, lat: DETECT_LATENCY_MS, outLat: outLatency(),
+          tolPct: Number(el.tolT.value), floor: 25 };
+    metro = { P, beat0, k: 0, vk: 0, cursor: -1, total: 4 + scale.notes.length };
+  }
+  run = new ScaleRun(scale, {
+    tol: Number(el.tol.value),
+    hold: useMetro ? Math.min(150, 0.4 * P) : 250,
+    wrongHold: useMetro ? Math.min(300, 0.6 * P) : 450,
+    metro: m,
+  });
+  runRev = -1; shownIdx = -1;
+  diag = { t0: now, frames: [], stopped: false }; el.diagOut.hidden = true;
+  const names = scale.rootLetter;
+  el.scaleTitle.textContent = t('scaleTitle')(
+    (lang === 'en' ? EN_L : FR_L)[names], t('typeName')[scale.type], (lang === 'en' ? FR_L : EN_L)[names]);
+  el.chips.innerHTML = scale.notes.map((n, k) =>
+    `<div class="chip${k === scale.topIdx ? ' top' : ''}" data-k="${k}">${spelledMain(n)}<small>&nbsp;</small></div>`).join('');
+  el.zone.style.display = 'block';
+  el.zone.style.left = (50 - Number(el.tol.value)) + '%';
+  el.zone.style.width = (2 * Number(el.tol.value)) + '%';
+  el.beatTxt.textContent = useMetro ? t('sTipMetro') : t('sTipFree');
+  setCue(useMetro ? '' : t('sGoNow'), !useMetro);
+  setVerdict('wait', useMetro ? t('sCount')(4) : t('sPlayUp')(1, scale.notes.length));
+  renderRun(true);
+}
+
+function setCue(text, go) { el.cue.textContent = text || '\u00a0'; el.cue.classList.toggle('go', !!go); }
+
+// kind : 'count' (décompte), 'go' (premier temps de la gamme : plus aigu et plus fort), 'beat', 'accent'
+function playClick(when, kind) {
+  if (!clickBuf) {                                           // bruit bref : peu de risque d'être pris pour une note
+    const n = Math.floor(ctx.sampleRate * 0.03);
+    clickBuf = ctx.createBuffer(1, n, ctx.sampleRate);
+    const d = clickBuf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.006));
+  }
+  const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  src.buffer = clickBuf;
+  f.type = 'bandpass'; f.Q.value = 1.2;
+  f.frequency.value = kind === 'go' ? 3300 : kind === 'accent' ? 2400 : 1700;
+  g.gain.value = kind === 'go' ? 3.4 : kind === 'accent' ? 2.8 : 1.9;
+  src.connect(f).connect(g).connect(ctx.destination);
+  src.start(when);
+}
+
+function tickMetro(now) {
+  const m = metro, bt = k => m.beat0 + k * m.P;
+  while (m.k < m.total && bt(m.k) - now < 120) {              // programmation à l'avance sur l'horloge audio
+    playClick(ctx.currentTime + Math.max(0, bt(m.k) - now) / 1000,
+      m.k === 4 ? 'go' : m.k < 4 ? 'count' : (m.k - 4) % 4 === 0 ? 'accent' : 'beat');
+    m.k++;
+  }
+  const lat = outLatency();
+  while (m.vk < m.k && bt(m.vk) + lat <= now) {               // témoin visuel synchronisé sur le son
+    el.beat.classList.add('on'); setTimeout(() => el.beat.classList.remove('on'), 90);
+    if (m.vk < 4) { setVerdict('wait', t('sCount')(4 - m.vk)); setCue(String(4 - m.vk), false); }
+    else if (m.vk === 4) setCue(t('sGoNow'), true);
+    else if (m.vk === 6) setCue('', false);
+    m.cursor = m.vk - 4;                                     // curseur : note attendue sur ce temps
+    el.chips.querySelectorAll('.chip').forEach((c, k) => c.classList.toggle('bt', k === m.cursor));
+    m.vk++;
+  }
+}
+
+function scaleFrame(now) {
+  if (!run) return;
+  if (metro) {
+    tickMetro(now);
+    if (!metro.go && now >= metro.beat0 + 4 * metro.P - metro.P / 2) { metro.go = true; renderRun(true); }
+  }
+  const fresh = now - lastHeardAt < 80 ? heard : null;
+  const wasDone = run.done;
+  run.update(fresh, lastHeardAt, now);
+  if (run.rev !== runRev) renderRun(false);
+  if (run.done && !wasDone) finishRun();
+}
+
+function renderRun(force) {
+  runRev = run.rev;
+  const n = scale.notes.length, cur = Math.min(run.idx, n - 1);
+  el.chips.querySelectorAll('.chip').forEach((c, k) => {
+    const r = run.res[k];
+    let cls = 'chip' + (k === scale.topIdx ? ' top' : '') + (metro && metro.cursor === k ? ' bt' : '');
+    let small = ' ';
+    if (r.matched || r.err) {
+      cls += r.err ? ' bad' : r.timing === false ? ' late' : ' ok';
+      const dv = r.rel !== null ? r.rel : r.dev;           // écart à sa propre pulsation, une fois l'exercice terminé
+      if (dv !== null && r.matched) small = (dv > 0 ? '+' : '') + Math.round(dv) + ' ms';
+      if (r.err && r.err.type === 'wrong') small = '→ ' + labelMain(r.err.played).split(' / ')[0];
+      else if (r.err && r.err.type === 'tuning') small = (r.err.dev > 0 ? '+' : '') + Math.round(r.err.dev) + ' ¢';
+      else if (r.err) small = '–';
+      c.title = r.err ? (r.err.type === 'wrong' ? spelledMain(scale.notes[k]) + ' ✗ ' + labelMain(r.err.played)
+                         : r.err.type === 'tuning' ? t('sTuning')(r.err.dev) : '✗') : '';
+    }
+    if (k === run.idx && !run.done) cls += ' cur';
+    if (c.className !== cls) c.className = cls;
+    if (c.lastElementChild.textContent !== small) c.lastElementChild.textContent = small;
+  });
+  if (cur !== shownIdx || force) {
+    shownIdx = cur;
+    const nt = scale.notes[cur];
+    target = { midi: nt.midi, spelling: nt };
+    el.targetMain.textContent = spelledMain(nt);
+    el.targetSub.textContent = spelledSub(nt);
+    drawStaff(nt.midi, nt);
+  }
+  if (run.done) return;
+  const started = !metro || metro.go;
+  if (run.live && run.live.idx === run.idx) {
+    setVerdict('bad', run.live.type === 'tuning' ? t('sTuning')(run.live.dev)
+      : t('sWrong')(labelMain(run.live.played).split(' / ')[0], run.live.up));
+  } else if (started) {
+    const nt = scale.notes[cur], i = cur + 1;
+    setVerdict('wait', (nt.dir === 'up' ? t('sPlayUp') : t('sPlayDown'))(i, n));
+  }
+}
+
+function finishRun() {
+  if (diag) diag.stopped = true;
+  const s = run.summary();
+  stats.done++; if (s.ok) stats.firstTry++; updateScore();
+  const extra = [s.short ? t('sShort') : '', s.offset !== null ? t('sMean')(s.offset, s.spread, s.offsetBig) : ''].filter(Boolean).join(' ');
+  setCue('', false);
+  el.verdict.className = 'verdict ' + (s.ok ? 'ok' : 'bad');
+  el.verdict.textContent = (s.ok ? t('sOk') : t('sBad')(s) + '.') + (extra ? ' ' + extra : '');
+  if (metro) el.beat.classList.remove('on');
+  el.chips.querySelectorAll('.chip.bt').forEach(c => c.classList.remove('bt'));
+  metro = null;
+}
+
+// Diagnostic : détection brute image par image, résumée en segments, pour comprendre une erreur de reconnaissance
+function buildDiag() {
+  if (!diag || !run) return '';
+  const ref = Number(el.refA.value) || 440, m = run.o.metro;
+  const base = m ? m.t0 : diag.t0, rel = x => Math.round(x - base);
+  const L = [];
+  L.push('Gamme ' + scale.type + ' (tonique ' + spelledMain(scale.notes[0]) + ') | tempo ' + (m ? Math.round(60000 / m.P) + ' bpm' : 'libre') +
+         ' | marge ' + el.tol.value + ' cents | sensibilité ' + el.gate.value + ' dB | La ' + ref + ' Hz | ' + navigator.userAgent.slice(0, 60));
+  L.push('Notes (idx nom midi | attendue ms | écart ms | résultat) — temps 0 = 1er temps de la gamme');
+  run.res.forEach((r, k) => {
+    const n = scale.notes[k];
+    L.push(k + ' ' + spelledMain(n) + ' ' + n.midi + ' | ' + (m ? Math.round(run.expected(k) - base) : '-') + ' | ' +
+           (r.dev !== null ? Math.round(r.dev) : '-') + ' | ' + (r.err ? r.err.type + (r.err.played ? ' joué=' + r.err.played : '') : r.matched ? 'ok' : '?'));
+  });
+  L.push('Détection brute (segments) : début..fin ms | note écrite (midi) | Hz moyen | clarté moy | niveau dB moy');
+  let seg = null;
+  const flush = () => { if (seg && seg.n >= 2) L.push(rel(seg.a) + '..' + rel(seg.b) + ' | ' + (seg.key ? labelMain(seg.key).split(' / ')[0] + ' (' + seg.key + ')' : 'rien') + ' | ' +
+    (seg.f / seg.n).toFixed(1) + ' | ' + (seg.c / seg.n).toFixed(2) + ' | ' + (seg.d / seg.n).toFixed(0)); };
+  for (const [t0, f, c, d] of diag.frames) {
+    const key = f && c > 0.5 ? Math.round(69 + 12 * Math.log2(f / ref) + TRANSPOSE) : 0;
+    if (!seg || seg.key !== key) { flush(); seg = { key, a: t0, b: t0, n: 0, f: 0, c: 0, d: 0 }; }
+    seg.b = t0; seg.n++; seg.f += f; seg.c += c; seg.d += d;
+  }
+  flush();
+  return L.join('\n');
+}
+
+function copyDiag() {
+  const txt = buildDiag();
+  el.diagOut.value = txt; el.diagOut.hidden = false; el.diagOut.select();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { el.beatTxt.textContent = t('sDiagCopied'); }).catch(() => {});
+}
+
+function setMode(m) {
+  if (m === mode) return;
+  if (training) stopTraining();
+  mode = m;
+  document.body.dataset.mode = m;
+  el.modeNote.setAttribute('aria-pressed', m === 'note');
+  el.modeScale.setAttribute('aria-pressed', m === 'scale');
+  el.zone.style.display = 'none';
+  stats = { done: 0, firstTry: 0 };
+  setVerdict('wait', m === 'scale' ? t('sIdle') : t('idle'));
+  refreshModeUI();
+}
+
+function refreshModeUI() {
+  el.trainBtn.textContent = training ? t('trainOff') : trainLabel(true);
+  el.skipBtn.textContent = t(mode === 'scale' ? 'sSkip' : 'skip');
+  el.headphones.hidden = !el.metroOn.checked;
+  el.minorType.disabled = !el.minorChk.checked;
+  el.bpmTxt.textContent = el.bpm.value; el.tolTTxt.textContent = el.tolT.value;
+  updateScore();
+}
+
 // ---------- Portée ----------
 function drawStaff(midi, spelling) {
-  const pc = midi % 12;
-  const [letter, acc] = (spelling === 'flat' ? SP_FLAT : SP_SHARP)[pc];
-  const d = letter + 7 * (octave(midi) - 4);          // pas diatoniques depuis do4 (do4 = 0)
+  let letter, acc, oct = octave(midi);
+  if (typeof spelling === 'object') {                  // orthographe imposée (gammes)
+    letter = spelling.letter; acc = ['♭♭', '♭', '', '♯', '♯♯'][spelling.acc + 2]; oct = spelling.oct;
+  } else [letter, acc] = (spelling === 'flat' ? SP_FLAT : SP_SHARP)[midi % 12];
+  const d = letter + 7 * (oct - 4);          // pas diatoniques depuis do4 (do4 = 0)
   const yBottom = 150, step = 6;                       // d = 2 (mi4) sur la ligne du bas
   const y = dd => yBottom - (dd - 2) * step;
   const x = 160;
@@ -342,8 +612,14 @@ function drawStaff(midi, spelling) {
 el.micBtn.onclick = () => stream ? (stopTraining(), stopMic()) : startMic();
 el.deviceSel.onchange = () => { if (stream) startMic(); };
 el.trainBtn.onclick = () => training ? stopTraining() : startTraining();
-el.skipBtn.onclick = () => { if (training) newTarget(); };
+el.skipBtn.onclick = () => { if (training) (mode === 'scale' ? newScale() : newTarget()); };
 el.toneBtn.onclick = playTone;
+el.modeNote.onclick = () => setMode('note');
+el.modeScale.onclick = () => setMode('scale');
+el.diagBtn.onclick = copyDiag;
+el.retryBtn.onclick = () => { if (training && scale) startRun(); };
+el.minorChk.onchange = el.metroOn.onchange = refreshModeUI;
+el.bpm.oninput = el.tolT.oninput = refreshModeUI;
 el.tol.oninput = () => {
   el.tolTxt.textContent = el.tol.value;
   if (target) { el.zone.style.left = (50 - el.tol.value) + '%'; el.zone.style.width = (2 * el.tol.value) + '%'; }
@@ -359,11 +635,16 @@ function applyLang() {
   el.langBtn.textContent = lang === 'fr' ? 'EN' : 'FR';
   el.langBtn.title = lang === 'fr' ? 'Switch to English' : 'Passer en français';
   el.micBtn.textContent = stream ? t('micOff') : t('micOn');
-  el.trainBtn.textContent = training ? t('trainOff') : t('trainOn');
+  refreshModeUI();
   if (!stream) el.deviceSel.options[0].textContent = t('defaultMic'); else listDevices();
-  if (!training && !target) setVerdict('wait', training ? '' : (stats.done ? t('ended') : t('idle')));
+  if (!training && !target) setVerdict('wait', stats.done ? t('ended') : t(mode === 'scale' ? 'sIdle' : 'idle'));
   updateScore();
-  if (target) { currentTargetShown(); if (state === 'play') setVerdict('wait', t('yourTurn')); }
+  if (mode === 'scale' && run && scale) {
+    const rl = scale.rootLetter;
+    el.scaleTitle.textContent = t('scaleTitle')((lang === 'en' ? EN_L : FR_L)[rl], t('typeName')[scale.type], (lang === 'en' ? FR_L : EN_L)[rl]);
+    el.chips.querySelectorAll('.chip').forEach((c, k) => { c.firstChild.textContent = spelledMain(scale.notes[k]); });
+    shownIdx = -1; renderRun(true);
+  } else if (target && mode === 'note') { currentTargetShown(); if (state === 'play') setVerdict('wait', t('yourTurn')); }
   showHeard(heard);
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) el.msg.textContent = t('noMedia');
 }
