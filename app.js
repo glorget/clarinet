@@ -66,7 +66,7 @@ const I18N = {
     sBad: (s) => '✗ À retravailler : ' + [s.pitch ? s.pitch + ' note' + (s.pitch > 1 ? 's' : '') + ' fausse' + (s.pitch > 1 ? 's' : '') + ' ou manquée' + (s.pitch > 1 ? 's' : '') : '', s.timing ? s.timing + ' note' + (s.timing > 1 ? 's' : '') + ' hors rythme' : ''].filter(Boolean).join(', '),
     sShort: 'La note la plus haute a été écourtée de plus de 50 %.',
     sMean: (off, spread, big) => 'Décalage moyen : ' + (Math.abs(off) < 15 ? 'pile sur le clic' : Math.abs(off).toFixed(0) + ' ms ' + (off > 0 ? 'après' : 'avant') + ' le clic') + ' ; régularité : ±' + spread.toFixed(0) + ' ms.' + (big ? ' Décalage trop important : jouez plus près du clic.' : ''),
-    sGoNow: '▶ Jouez !',
+    sGoNow: '▶ Jouez !', sDiag: 'Copier le diagnostic', sDiagCopied: 'Diagnostic copié — collez-le dans la conversation.',
     sScore: n => n.firstTry + ' / ' + n.done + ' gammes réussies',
     sTipFree: 'Sans métronome : jouez legato ; une courte respiration au sommet est acceptée.',
     sTipMetro: 'Une note par temps, en legato ; une respiration au sommet est acceptée (note la plus haute écourtée de 50 % au plus).',
@@ -111,7 +111,7 @@ const I18N = {
     sBad: (s) => '✗ Needs work: ' + [s.pitch ? s.pitch + ' wrong or missed note' + (s.pitch > 1 ? 's' : '') : '', s.timing ? s.timing + ' note' + (s.timing > 1 ? 's' : '') + ' off the beat' : ''].filter(Boolean).join(', '),
     sShort: 'The highest note was cut short by more than 50%.',
     sMean: (off, spread, big) => 'Average offset: ' + (Math.abs(off) < 15 ? 'right on the click' : Math.abs(off).toFixed(0) + ' ms ' + (off > 0 ? 'behind' : 'ahead of') + ' the click') + '; steadiness: ±' + spread.toFixed(0) + ' ms.' + (big ? ' Offset too large: play closer to the click.' : ''),
-    sGoNow: '▶ Play!',
+    sGoNow: '▶ Play!', sDiag: 'Copy diagnostic', sDiagCopied: 'Diagnostic copied — paste it into the conversation.',
     sScore: n => n.firstTry + ' / ' + n.done + ' scales completed',
     sTipFree: 'No metronome: play legato; a short breath at the top is accepted.',
     sTipMetro: 'One note per beat, legato; a breath at the top is accepted (the highest note may be cut short by 50% at most).',
@@ -132,7 +132,7 @@ const el = {
   modeNote: $('modeNote'), modeScale: $('modeScale'), retryBtn: $('retryBtn'), scaleTitle: $('scaleTitle'),
   chips: $('chips'), beat: $('beat'), beatTxt: $('beatTxt'), minorChk: $('minorChk'), minorType: $('minorType'),
   metroOn: $('metroOn'), headphones: $('headphones'), bpm: $('bpm'), bpmTxt: $('bpmTxt'),
-  tolT: $('tolT'), tolTTxt: $('tolTTxt'), cue: $('cue'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
+  tolT: $('tolT'), tolTTxt: $('tolTTxt'), cue: $('cue'), diagBtn: $('diagBtn'), diagOut: $('diagOut'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
   staff: $('staff'), targetMain: $('targetMain'), targetSub: $('targetSub'), verdict: $('verdict'),
 };
 
@@ -207,11 +207,13 @@ function loop() {
   el.level.style.width = Math.max(0, Math.min(100, (db + 70) / 50 * 100)) + '%';
 
   const now = performance.now();
-  let f = null;
+  let f = null, raw = null;
   if (now > ignoreUntil && db > Number(el.gate.value)) {
     const r = detectPitch(recent, ctx.sampleRate, { minFreq: 135, maxFreq: 2100 });
+    raw = r;
     if (r && r.clarity > 0.8) f = r.freq;
   }
+  if (diag && !diag.stopped) diag.frames.push([now, raw ? raw.freq : 0, raw ? raw.clarity : 0, db]);
   history.push(f);
   if (history.length > HIST) history.shift();
   const valid = history.filter(x => x !== null).sort((a, b) => a - b);
@@ -368,6 +370,7 @@ function playTone() {
 }
 
 // ---------- Mode Gammes ----------
+let diag = null;
 let mode = 'note', scale = null, run = null, metro = null, lastRoot = -1, clickBuf = null, runRev = -1, shownIdx = -1;
 const DETECT_LATENCY_MS = 70;   // délai moyen de la détection (fenêtre d'analyse + lissage), mesuré approximativement
 const FR_L = ['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'], EN_L = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -407,6 +410,7 @@ function startRun() {
     metro: m,
   });
   runRev = -1; shownIdx = -1;
+  diag = { t0: now, frames: [], stopped: false }; el.diagOut.hidden = true;
   const names = scale.rootLetter;
   el.scaleTitle.textContent = t('scaleTitle')(
     (lang === 'en' ? EN_L : FR_L)[names], t('typeName')[scale.type], (lang === 'en' ? FR_L : EN_L)[names]);
@@ -513,6 +517,7 @@ function renderRun(force) {
 }
 
 function finishRun() {
+  if (diag) diag.stopped = true;
   const s = run.summary();
   stats.done++; if (s.ok) stats.firstTry++; updateScore();
   const extra = [s.short ? t('sShort') : '', s.offset !== null ? t('sMean')(s.offset, s.spread, s.offsetBig) : ''].filter(Boolean).join(' ');
@@ -522,6 +527,39 @@ function finishRun() {
   if (metro) el.beat.classList.remove('on');
   el.chips.querySelectorAll('.chip.bt').forEach(c => c.classList.remove('bt'));
   metro = null;
+}
+
+// Diagnostic : détection brute image par image, résumée en segments, pour comprendre une erreur de reconnaissance
+function buildDiag() {
+  if (!diag || !run) return '';
+  const ref = Number(el.refA.value) || 440, m = run.o.metro;
+  const base = m ? m.t0 : diag.t0, rel = x => Math.round(x - base);
+  const L = [];
+  L.push('Gamme ' + scale.type + ' (tonique ' + spelledMain(scale.notes[0]) + ') | tempo ' + (m ? Math.round(60000 / m.P) + ' bpm' : 'libre') +
+         ' | marge ' + el.tol.value + ' cents | sensibilité ' + el.gate.value + ' dB | La ' + ref + ' Hz | ' + navigator.userAgent.slice(0, 60));
+  L.push('Notes (idx nom midi | attendue ms | écart ms | résultat) — temps 0 = 1er temps de la gamme');
+  run.res.forEach((r, k) => {
+    const n = scale.notes[k];
+    L.push(k + ' ' + spelledMain(n) + ' ' + n.midi + ' | ' + (m ? Math.round(run.expected(k) - base) : '-') + ' | ' +
+           (r.dev !== null ? Math.round(r.dev) : '-') + ' | ' + (r.err ? r.err.type + (r.err.played ? ' joué=' + r.err.played : '') : r.matched ? 'ok' : '?'));
+  });
+  L.push('Détection brute (segments) : début..fin ms | note écrite (midi) | Hz moyen | clarté moy | niveau dB moy');
+  let seg = null;
+  const flush = () => { if (seg && seg.n >= 2) L.push(rel(seg.a) + '..' + rel(seg.b) + ' | ' + (seg.key ? labelMain(seg.key).split(' / ')[0] + ' (' + seg.key + ')' : 'rien') + ' | ' +
+    (seg.f / seg.n).toFixed(1) + ' | ' + (seg.c / seg.n).toFixed(2) + ' | ' + (seg.d / seg.n).toFixed(0)); };
+  for (const [t0, f, c, d] of diag.frames) {
+    const key = f && c > 0.5 ? Math.round(69 + 12 * Math.log2(f / ref) + TRANSPOSE) : 0;
+    if (!seg || seg.key !== key) { flush(); seg = { key, a: t0, b: t0, n: 0, f: 0, c: 0, d: 0 }; }
+    seg.b = t0; seg.n++; seg.f += f; seg.c += c; seg.d += d;
+  }
+  flush();
+  return L.join('\n');
+}
+
+function copyDiag() {
+  const txt = buildDiag();
+  el.diagOut.value = txt; el.diagOut.hidden = false; el.diagOut.select();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => { el.beatTxt.textContent = t('sDiagCopied'); }).catch(() => {});
 }
 
 function setMode(m) {
@@ -578,6 +616,7 @@ el.skipBtn.onclick = () => { if (training) (mode === 'scale' ? newScale() : newT
 el.toneBtn.onclick = playTone;
 el.modeNote.onclick = () => setMode('note');
 el.modeScale.onclick = () => setMode('scale');
+el.diagBtn.onclick = copyDiag;
 el.retryBtn.onclick = () => { if (training && scale) startRun(); };
 el.minorChk.onchange = el.metroOn.onchange = refreshModeUI;
 el.bpm.oninput = el.tolT.oninput = refreshModeUI;
