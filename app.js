@@ -417,7 +417,7 @@ function startRun() {
   el.zone.style.width = (2 * Number(el.tol.value)) + '%';
   el.beatTxt.textContent = useMetro ? t('sTipMetro') : t('sTipFree');
   setCue(useMetro ? '' : t('sGoNow'), !useMetro);
-  setVerdict('wait', useMetro ? t('sCount')(1) : t('sPlayUp')(1, scale.notes.length));
+  setVerdict('wait', useMetro ? t('sCount')(4) : t('sPlayUp')(1, scale.notes.length));
   renderRun(true);
 }
 
@@ -450,7 +450,7 @@ function tickMetro(now) {
   const lat = outLatency();
   while (m.vk < m.k && bt(m.vk) + lat <= now) {               // témoin visuel synchronisé sur le son
     el.beat.classList.add('on'); setTimeout(() => el.beat.classList.remove('on'), 90);
-    if (m.vk < 4) { setVerdict('wait', t('sCount')(m.vk + 1)); setCue(String(m.vk + 1), false); }
+    if (m.vk < 4) { setVerdict('wait', t('sCount')(4 - m.vk)); setCue(String(4 - m.vk), false); }
     else if (m.vk === 4) setCue(t('sGoNow'), true);
     else if (m.vk === 6) setCue('', false);
     m.cursor = m.vk - 4;                                     // curseur : note attendue sur ce temps
