@@ -42,8 +42,10 @@ function buildScale(rootLetter, type, lowest) {
 //   o.tol      marge d'accord (cents)
 //   o.hold     durée minimale (ms) pendant laquelle la bonne note doit être entendue pour être validée
 //   o.wrongHold durée (ms) d'une mauvaise note stable avant de la signaler
-//   o.metro    null, ou { P (ms par temps), t0 (instant du 1er temps de la gamme), lat (latence de détection, ms),
-//              outLat (latence de sortie, ms), tolPct (0…20), floor (ms, résolution de mesure) }
+//   o.metro    null, ou { P (ms par temps), beat0 (instant d'un temps de référence du métronome), lat (latence de
+//              détection, ms), outLat (latence de sortie, ms), tolPct (0…20), floor (ms, résolution de mesure) }
+// Pas de décompte : le joueur démarre quand il veut. La première note jouée juste fixe la grille : elle est rattachée
+// au temps du métronome le plus proche (b0), et les notes suivantes sont attendues sur les temps suivants.
 // Régularité : le décalage moyen du joueur par rapport au clic (médiane des écarts) est mesuré, puis chaque note est
 // jugée par rapport à cette pulsation personnelle. Un décalage constant n'est donc pas une faute de régularité ;
 // au-delà de 45 % d'un temps, il l'est (on ne sait plus sur quel temps le joueur se place).
@@ -57,16 +59,16 @@ class ScaleRun {
     this.res = this.notes.map(() => ({ err: null, matched: false, dev: null, rel: null, timing: null, onset: null, last: null, short: false }));
   }
 
-  expected(k) { const m = this.o.metro; return m.t0 + k * m.P + (m.outLat || 0); }
+  expected(k) { const m = this.o.metro; return m.beat0 + (this.b0 + k) * m.P + (m.outLat || 0); }
   _dev(h, k) { return Math.abs(h.wf - this.notes[k].midi) * 100; }
 
   update(h, heardAt, now) {
     if (this.done) return;
     const m = this.o.metro, n = this.notes.length, tol = this.o.tol;
-    if (m && now < m.t0 - m.P / 2) return;                  // décompte : on n'écoute pas encore
+    const timed = m && this.b0 !== undefined;                // la grille n'existe qu'après la première note
 
     // Notes dont la fenêtre de temps est dépassée : manquées (fenêtre décalée selon le retard habituel du joueur)
-    if (m) {
+    if (timed) {
       const sh = this._shift();
       while (this.idx < n && now > this.expected(this.idx) + sh + 0.9 * m.P + this.o.hold) this._miss(this.idx++);
     }
@@ -107,7 +109,7 @@ class ScaleRun {
         this.wrong = null;
       }
     }
-    if (this.idx >= n || (m && now > this.expected(n - 1) + this._shift() + 1.2 * m.P)) this._finish();
+    if (this.idx >= n || (timed && now > this.expected(n - 1) + this._shift() + 1.2 * m.P)) this._finish();
   }
 
   _devs() { return this.res.filter(r => r.dev !== null).map(r => r.dev); }
@@ -132,7 +134,10 @@ class ScaleRun {
     for (let k = this.idx; k < j; k++) this._miss(k);
     const r = this.res[j], m = this.o.metro;
     r.matched = true; r.onset = since; r.last = heardAt;
-    if (m) r.dev = (since - m.lat) - this.expected(j);
+    if (m) {
+      if (this.b0 === undefined) this.b0 = Math.round(((since - m.lat) - (m.outLat || 0) - m.beat0) / m.P) - j;
+      r.dev = (since - m.lat) - this.expected(j);
+    }
     this.idx = j + 1; this.cand = null; this.wrong = null; this.live = null; this.rev++;
   }
 
@@ -149,8 +154,8 @@ class ScaleRun {
       this.res.forEach(r => { if (r.dev !== null) { r.rel = r.dev - ref; r.timing = Math.abs(r.rel) <= tolT; } });
       this.spread = d.length ? d.reduce((a, v) => a + Math.abs(v - ref), 0) / d.length : 0;
     }
-    // Respiration au sommet : la note la plus haute peut être écourtée de 50 % au plus
-    if (m && t.matched && t.last !== null && (t.last - t.onset) < 0.5 * m.P - m.floor) {
+    // Respiration au sommet : la note la plus haute peut être écourtée de 50 % au plus (à la tolérance de rythme près)
+    if (m && t.matched && t.last !== null && (t.last - t.onset) < 0.5 * m.P - (m.tolPct / 100 * m.P + m.floor)) {
       t.short = true; t.timing = false;
     }
     this.done = true; this.rev++;

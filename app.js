@@ -59,7 +59,6 @@ const I18N = {
     sIdle: 'Choisissez les options puis appuyez sur « Démarrer la gamme ».',
     sPlayUp: (i, n) => 'Jouez la gamme en montant — note ' + i + '/' + n,
     sPlayDown: (i, n) => 'Et en descendant — note ' + i + '/' + n,
-    sCount: k => 'Décompte… ' + k, sGo: 'Allez-y !',
     sTuning: dev => 'Note juste mais trop ' + (dev > 0 ? 'haute' : 'basse') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
     sWrong: (name, up) => 'Vous jouez ' + name + ' (' + (up ? 'trop haut' : 'trop bas') + ')',
     sOk: '✓ Gamme réussie !',
@@ -69,7 +68,8 @@ const I18N = {
     sGoNow: '▶ Jouez !', sDiag: 'Copier le diagnostic', sDiagCopied: 'Diagnostic copié — collez-le dans la conversation.',
     sScore: n => n.firstTry + ' / ' + n.done + ' gammes réussies',
     sTipFree: 'Sans métronome : jouez legato ; une courte respiration au sommet est acceptée.',
-    sTipMetro: 'Une note par temps, en legato ; une respiration au sommet est acceptée (note la plus haute écourtée de 50 % au plus).',
+    sTipMetro: 'Jouez quand vous voulez, une note par temps, en legato : la régularité est mesurée à partir de votre première note. Une respiration au sommet est acceptée (note la plus haute écourtée de 50 % au plus).',
+    sSignal: 'Signal du métronome', sigSound: 'Sonore', sigLight: 'Visuel (lueur sur les bords de l\'écran)', sigBoth: 'Sonore et visuel',
     micDenied: e => "Impossible d'accéder au micro (" + e + "). Autorisez le micro pour cette page dans le navigateur et dans Réglages Système > Confidentialité > Micro.",
     noMedia: "Ce navigateur n'autorise pas l'accès au micro depuis cette adresse. Lancez l'application avec lancer.command (adresse localhost).",
   },
@@ -104,7 +104,6 @@ const I18N = {
     sIdle: 'Choose the options, then press “Start the scale”.',
     sPlayUp: (i, n) => 'Play the scale going up — note ' + i + '/' + n,
     sPlayDown: (i, n) => 'And coming down — note ' + i + '/' + n,
-    sCount: k => 'Count-in… ' + k, sGo: 'Go!',
     sTuning: dev => 'Right note but too ' + (dev > 0 ? 'sharp' : 'flat') + ' (' + (dev > 0 ? '+' : '') + dev.toFixed(0) + ' cents)',
     sWrong: (name, up) => 'You are playing ' + name + ' (' + (up ? 'too high' : 'too low') + ')',
     sOk: '✓ Scale completed!',
@@ -114,7 +113,8 @@ const I18N = {
     sGoNow: '▶ Play!', sDiag: 'Copy diagnostic', sDiagCopied: 'Diagnostic copied — paste it into the conversation.',
     sScore: n => n.firstTry + ' / ' + n.done + ' scales completed',
     sTipFree: 'No metronome: play legato; a short breath at the top is accepted.',
-    sTipMetro: 'One note per beat, legato; a breath at the top is accepted (the highest note may be cut short by 50% at most).',
+    sTipMetro: 'Start whenever you like, one note per beat, legato: steadiness is measured from your first note. A breath at the top is accepted (the highest note may be cut short by 50% at most).',
+    sSignal: 'Metronome signal', sigSound: 'Sound', sigLight: 'Visual (glow along the screen edges)', sigBoth: 'Sound and visual',
     micDenied: e => 'Cannot access the microphone (' + e + '). Allow microphone access for this page in the browser and in System Settings > Privacy & Security > Microphone.',
     noMedia: 'This browser does not allow microphone access from this address. Start the app with lancer.command (localhost address).',
   },
@@ -132,7 +132,7 @@ const el = {
   modeNote: $('modeNote'), modeScale: $('modeScale'), retryBtn: $('retryBtn'), scaleTitle: $('scaleTitle'),
   chips: $('chips'), beat: $('beat'), beatTxt: $('beatTxt'), minorChk: $('minorChk'), minorType: $('minorType'),
   metroOn: $('metroOn'), headphones: $('headphones'), bpm: $('bpm'), bpmTxt: $('bpmTxt'),
-  tolT: $('tolT'), tolTTxt: $('tolTTxt'), cue: $('cue'), diagBtn: $('diagBtn'), diagOut: $('diagOut'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
+  tolT: $('tolT'), tolTTxt: $('tolTTxt'), cue: $('cue'), glow: $('glow'), metroMode: $('metroMode'), diagBtn: $('diagBtn'), diagOut: $('diagOut'), trainBtn: $('trainBtn'), skipBtn: $('skipBtn'), toneBtn: $('toneBtn'), score: $('score'),
   staff: $('staff'), targetMain: $('targetMain'), targetSub: $('targetSub'), verdict: $('verdict'),
 };
 
@@ -343,7 +343,7 @@ async function startTraining() {
 }
 
 function stopTraining() {
-  training = false; state = 'idle'; target = null; run = null; metro = null;
+  training = false; state = 'idle'; target = null; run = null; metro = null; el.glow.style.opacity = '0';
   el.trainBtn.textContent = trainLabel(true);
   el.skipBtn.disabled = el.toneBtn.disabled = el.retryBtn.disabled = true;
   el.chips.innerHTML = ''; el.scaleTitle.innerHTML = '&nbsp;'; el.beatTxt.textContent = ''; setCue('', false); el.beat.classList.remove('on');
@@ -397,11 +397,11 @@ function startRun() {
   const P = 60000 / Number(el.bpm.value);
   let m = null;
   metro = null;
-  if (useMetro) {
-    const beat0 = now + 600;                                  // 4 temps de décompte, puis la gamme
-    m = { P, t0: beat0 + 4 * P, lat: DETECT_LATENCY_MS, outLat: outLatency(),
-          tolPct: Number(el.tolT.value), floor: 25 };
-    metro = { P, beat0, k: 0, vk: 0, cursor: -1, total: 4 + scale.notes.length };
+  if (useMetro) {                                             // pas de décompte : la grille se cale sur la 1re note jouée
+    const sig = el.metroMode.value, sound = sig !== 'light', light = sig !== 'sound';
+    const beat0 = now + 600;
+    m = { P, beat0, lat: DETECT_LATENCY_MS, outLat: sound ? outLatency() : 0, tolPct: Number(el.tolT.value), floor: 25 };
+    metro = { P, beat0, k: 0, vk: 0, cursor: -1, sound, light };
   }
   run = new ScaleRun(scale, {
     tol: Number(el.tol.value),
@@ -420,14 +420,14 @@ function startRun() {
   el.zone.style.left = (50 - Number(el.tol.value)) + '%';
   el.zone.style.width = (2 * Number(el.tol.value)) + '%';
   el.beatTxt.textContent = useMetro ? t('sTipMetro') : t('sTipFree');
-  setCue(useMetro ? '' : t('sGoNow'), !useMetro);
-  setVerdict('wait', useMetro ? t('sCount')(4) : t('sPlayUp')(1, scale.notes.length));
+  setCue(t('sGoNow'), true);
+  setVerdict('wait', t('sPlayUp')(1, scale.notes.length));
   renderRun(true);
 }
 
 function setCue(text, go) { el.cue.textContent = text || '\u00a0'; el.cue.classList.toggle('go', !!go); }
 
-// kind : 'count' (décompte), 'go' (premier temps de la gamme : plus aigu et plus fort), 'beat', 'accent'
+// kind : 'accent' (premier temps de chaque mesure de 4) ou 'beat'
 function playClick(when, kind) {
   if (!clickBuf) {                                           // bruit bref : peu de risque d'être pris pour une note
     const n = Math.floor(ctx.sampleRate * 0.03);
@@ -438,37 +438,46 @@ function playClick(when, kind) {
   const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   src.buffer = clickBuf;
   f.type = 'bandpass'; f.Q.value = 1.2;
-  f.frequency.value = kind === 'go' ? 3300 : kind === 'accent' ? 2400 : 1700;
-  g.gain.value = kind === 'go' ? 3.4 : kind === 'accent' ? 2.8 : 1.9;
+  f.frequency.value = kind === 'accent' ? 2400 : 1700;
+  g.gain.value = kind === 'accent' ? 2.8 : 1.9;
   src.connect(f).connect(g).connect(ctx.destination);
   src.start(when);
 }
 
 function tickMetro(now) {
   const m = metro, bt = k => m.beat0 + k * m.P;
-  while (m.k < m.total && bt(m.k) - now < 120) {              // programmation à l'avance sur l'horloge audio
-    playClick(ctx.currentTime + Math.max(0, bt(m.k) - now) / 1000,
-      m.k === 4 ? 'go' : m.k < 4 ? 'count' : (m.k - 4) % 4 === 0 ? 'accent' : 'beat');
-    m.k++;
+  if (m.sound) {
+    while (bt(m.k) - now < 120) {                             // programmation à l'avance sur l'horloge audio
+      playClick(ctx.currentTime + Math.max(0, bt(m.k) - now) / 1000, m.k % 4 === 0 ? 'accent' : 'beat');
+      m.k++;
+    }
   }
-  const lat = outLatency();
-  while (m.vk < m.k && bt(m.vk) + lat <= now) {               // témoin visuel synchronisé sur le son
+  const lat = m.sound ? outLatency() : 0;
+  while (bt(m.vk) + lat <= now) {                             // témoin visuel synchronisé sur le temps
     el.beat.classList.add('on'); setTimeout(() => el.beat.classList.remove('on'), 90);
-    if (m.vk < 4) { setVerdict('wait', t('sCount')(4 - m.vk)); setCue(String(4 - m.vk), false); }
-    else if (m.vk === 4) setCue(t('sGoNow'), true);
-    else if (m.vk === 6) setCue('', false);
-    m.cursor = m.vk - 4;                                     // curseur : note attendue sur ce temps
+    m.cursor = run.b0 !== undefined ? m.vk - run.b0 : -1;    // curseur : note attendue sur ce temps
     el.chips.querySelectorAll('.chip').forEach((c, k) => c.classList.toggle('bt', k === m.cursor));
     m.vk++;
   }
 }
 
+// Métronome visuel : lueur le long des bords de l'écran. Entre deux temps (durée P) :
+// montée progressive sur 20 % de P, plateau (le temps lui-même) sur 10 %, descente progressive sur 20 %.
+// Le temps est le milieu du plateau ; le reste de l'intervalle (50 % de P) est sombre.
+function glowFrame(now) {
+  let I = 0;
+  if (metro && metro.light && run && !run.done) {
+    const ph = (((now - metro.beat0) / metro.P) % 1 + 1) % 1, dx = Math.min(ph, 1 - ph);   // distance au temps, en fraction de P
+    if (dx <= 0.05) I = 1;
+    else if (dx < 0.25) { const u = (0.25 - dx) / 0.20; I = u * u * (3 - 2 * u); }           // lissage
+  }
+  el.glow.style.opacity = I < 0.003 ? '0' : I.toFixed(3);
+}
+
 function scaleFrame(now) {
   if (!run) return;
-  if (metro) {
-    tickMetro(now);
-    if (!metro.go && now >= metro.beat0 + 4 * metro.P - metro.P / 2) { metro.go = true; renderRun(true); }
-  }
+  if (metro) tickMetro(now);
+  glowFrame(now);
   const fresh = now - lastHeardAt < 80 ? heard : null;
   const wasDone = run.done;
   run.update(fresh, lastHeardAt, now);
@@ -506,11 +515,11 @@ function renderRun(force) {
     drawStaff(nt.midi, nt);
   }
   if (run.done) return;
-  const started = !metro || metro.go;
+  if (run.idx > 0 && el.cue.textContent.trim()) setCue('', false);   // l'exercice est lancé : on retire l'invite
   if (run.live && run.live.idx === run.idx) {
     setVerdict('bad', run.live.type === 'tuning' ? t('sTuning')(run.live.dev)
       : t('sWrong')(labelMain(run.live.played).split(' / ')[0], run.live.up));
-  } else if (started) {
+  } else {
     const nt = scale.notes[cur], i = cur + 1;
     setVerdict('wait', (nt.dir === 'up' ? t('sPlayUp') : t('sPlayDown'))(i, n));
   }
@@ -525,6 +534,7 @@ function finishRun() {
   el.verdict.className = 'verdict ' + (s.ok ? 'ok' : 'bad');
   el.verdict.textContent = (s.ok ? t('sOk') : t('sBad')(s) + '.') + (extra ? ' ' + extra : '');
   if (metro) el.beat.classList.remove('on');
+  el.glow.style.opacity = '0';
   el.chips.querySelectorAll('.chip.bt').forEach(c => c.classList.remove('bt'));
   metro = null;
 }
@@ -533,14 +543,15 @@ function finishRun() {
 function buildDiag() {
   if (!diag || !run) return '';
   const ref = Number(el.refA.value) || 440, m = run.o.metro;
-  const base = m ? m.t0 : diag.t0, rel = x => Math.round(x - base);
+  const timed = m && run.b0 !== undefined;
+  const base = timed ? m.beat0 + run.b0 * m.P : diag.t0, rel = x => Math.round(x - base);
   const L = [];
   L.push('Gamme ' + scale.type + ' (tonique ' + spelledMain(scale.notes[0]) + ') | tempo ' + (m ? Math.round(60000 / m.P) + ' bpm' : 'libre') +
          ' | marge ' + el.tol.value + ' cents | sensibilité ' + el.gate.value + ' dB | La ' + ref + ' Hz | ' + navigator.userAgent.slice(0, 60));
-  L.push('Notes (idx nom midi | attendue ms | écart ms | résultat) — temps 0 = 1er temps de la gamme');
+  L.push('Notes (idx nom midi | attendue ms | écart ms | résultat) — temps 0 = temps de la 1re note');
   run.res.forEach((r, k) => {
     const n = scale.notes[k];
-    L.push(k + ' ' + spelledMain(n) + ' ' + n.midi + ' | ' + (m ? Math.round(run.expected(k) - base) : '-') + ' | ' +
+    L.push(k + ' ' + spelledMain(n) + ' ' + n.midi + ' | ' + (timed ? Math.round(run.expected(k) - base) : '-') + ' | ' +
            (r.dev !== null ? Math.round(r.dev) : '-') + ' | ' + (r.err ? r.err.type + (r.err.played ? ' joué=' + r.err.played : '') : r.matched ? 'ok' : '?'));
   });
   L.push('Détection brute (segments) : début..fin ms | note écrite (midi) | Hz moyen | clarté moy | niveau dB moy');
@@ -578,7 +589,8 @@ function setMode(m) {
 function refreshModeUI() {
   el.trainBtn.textContent = training ? t('trainOff') : trainLabel(true);
   el.skipBtn.textContent = t(mode === 'scale' ? 'sSkip' : 'skip');
-  el.headphones.hidden = !el.metroOn.checked;
+  el.metroMode.disabled = !el.metroOn.checked;
+  el.headphones.hidden = !(el.metroOn.checked && el.metroMode.value !== 'light');
   el.minorType.disabled = !el.minorChk.checked;
   el.bpmTxt.textContent = el.bpm.value; el.tolTTxt.textContent = el.tolT.value;
   updateScore();
@@ -618,7 +630,7 @@ el.modeNote.onclick = () => setMode('note');
 el.modeScale.onclick = () => setMode('scale');
 el.diagBtn.onclick = copyDiag;
 el.retryBtn.onclick = () => { if (training && scale) startRun(); };
-el.minorChk.onchange = el.metroOn.onchange = refreshModeUI;
+el.minorChk.onchange = el.metroOn.onchange = el.metroMode.onchange = refreshModeUI;
 el.bpm.oninput = el.tolT.oninput = refreshModeUI;
 el.tol.oninput = () => {
   el.tolTxt.textContent = el.tol.value;

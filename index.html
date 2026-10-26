@@ -170,6 +170,11 @@
   .beatrow { display: flex; align-items: center; gap: 10px; min-height: 22px; }
   .beat { width: 16px; height: 16px; border-radius: 50%; background: var(--line); flex: none; }
   .beat.on { background: var(--accent); }
+  /* Métronome visuel : lueur le long des bords de l'écran (une seule couleur), intensité pilotée image par image */
+  #glow { position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0; border-radius: 46px; --g: 47, 128, 190;
+          box-shadow: inset 0 0 14px 3px rgba(var(--g), .95), inset 0 0 55px 16px rgba(var(--g), .65),
+                      inset 0 0 130px 38px rgba(var(--g), .30); }
+  @media (prefers-color-scheme: dark) { #glow { --g: 130, 205, 245; } }
   .hint { color: var(--muted); font-size: .85rem; }
   .hint.warn { color: var(--warn); }
 
@@ -209,6 +214,7 @@
 </style>
 </head>
 <body data-mode="note">
+<div id="glow" aria-hidden="true"></div>
 <main>
   <header>
     <div><h1 data-i18n="h1"></h1>
@@ -310,6 +316,13 @@
         </select>
       </label>
       <label class="inline scale-only full"><input type="checkbox" id="metroOn"> <span data-i18n="sMetro"></span></label>
+      <label class="scale-only full"><span data-i18n="sSignal"></span>
+        <select id="metroMode" disabled>
+          <option value="sound" data-i18n="sigSound"></option>
+          <option value="light" data-i18n="sigLight"></option>
+          <option value="both" data-i18n="sigBoth"></option>
+        </select>
+      </label>
       <div class="full hint warn scale-only" id="headphones" hidden data-i18n="sHeadphones"></div>
       <label class="scale-only"><span><span data-i18n="sBpm"></span> <b id="bpmTxt">80</b></span>
         <input type="range" id="bpm" min="30" max="180" step="1" value="80">
